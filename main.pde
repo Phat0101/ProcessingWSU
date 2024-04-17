@@ -1,4 +1,4 @@
-Shape[] shapes = new Shape[0];
+ArrayList<Shape> shapes = new ArrayList<Shape>();
 Menu menu = new Menu();
 MenuExtra menuExtra = new MenuExtra();
 Shape newShape;
@@ -32,7 +32,16 @@ void draw() {
 }
 
 void addShape(Shape shape) {
-    shapes = (Shape[]) append(shapes, shape);
+    shapes.add(shape);
+}
+
+void saveShapes() {
+    String[] data = new String[shapes.size()];
+    for (int i = 0; i < shapes.size(); i++) {
+        Shape shape = shapes.get(i);
+        data[i] = shape.toString();
+    }
+    saveStrings("shapes.txt", data);
 }
 
 void mousePressed() {
@@ -57,7 +66,7 @@ void mousePressed() {
         isDrawing = true;
     }
     // Select a shape if the mouse is pressed on it
-    if (menuExtra.currentOption == "Move" || menuExtra.currentOption == "Resize"){
+    if (menuExtra.currentOption == "Move" || menuExtra.currentOption == "Resize" || menuExtra.currentOption == "Delete"){
         for (Shape shape : shapes) {
                 if (shape.contains(mouseX, mouseY)) {
                     selectedShape = shape;
@@ -66,10 +75,14 @@ void mousePressed() {
         }
         menu.currentShape = null;
     }
+
     if (menu.isMouseOutsideMenu() && menuExtra.isMouseOutsideMenu() && selectedShape == null && menuExtra.currentOption == "Area select") {
         selectionRectangle = new Rectangle(mouseX, mouseY, 0, 0, color(255,255,255, 63), true, 1.0);
         menu.currentShape = null;
         selectedShapes.clear();
+    }
+    if (menuExtra.currentOption == "Save") {
+        saveShapes();
     }
    
 }
@@ -93,8 +106,12 @@ void mouseDragged() {
         // Add similar conditions for other shapes
     }
     if (selectedShape != null && menuExtra.currentOption == "Move") {
-        selectedShape.x = mouseX;
-        selectedShape.y = mouseY;
+        selectedShape.x = mouseX - prevMouseX + selectedShape.x;
+        selectedShape.y = mouseY - prevMouseY + selectedShape.y;
+        if (selectedShape instanceof Line) {
+            ((Line) selectedShape).x2 += mouseX - prevMouseX;
+            ((Line) selectedShape).y2 += mouseY - prevMouseY;
+        }
     }
     if (selectedShape != null && menuExtra.currentOption == "Resize") {
         if (selectedShape instanceof Rectangle) {
@@ -123,6 +140,10 @@ void mouseDragged() {
             if (selectedShapes.contains(shape)){
                 shape.x += mouseX - prevMouseX;
                 shape.y += mouseY - prevMouseY;
+                if (shape instanceof Line) {
+                    ((Line) shape).x2 += mouseX - prevMouseX;
+                    ((Line) shape).y2 += mouseY - prevMouseY;
+                }
             }
         }
     }
@@ -157,7 +178,7 @@ void mouseReleased() {
         newShape = null;
         isDrawing = false;
     }
-    if (menuExtra.currentOption == "Move" || menuExtra.currentOption == "Resize"){
+    if (menuExtra.currentOption == "Move" || menuExtra.currentOption == "Resize" ){
         selectedShape = null;
     }
     // Select shapes that are inside the selection rectangle
@@ -167,8 +188,17 @@ void mouseReleased() {
                 selectedShapes.add(shape);
             }
         }
-        println(selectedShapes);
         selectionRectangle = null;
+    }
+    if (selectedShape!=null && menuExtra.currentOption == "Delete") {
+        shapes.remove(selectedShape);
+        selectedShape = null;
+    }
+    if (selectedShapes.size() > 0 && menuExtra.currentOption == "Delete") {
+        for (Shape shape : selectedShapes) {
+            shapes.remove(shape);
+        }
+        selectedShapes.clear();
     }
 }
 
@@ -200,7 +230,7 @@ void imageSelected(File selection) {
         PImage img = loadImage(selection.getAbsolutePath());
         float width = min(img.width, 200);
         float height = min(img.height, 200);
-        ImageShape imageShape = new ImageShape(mouseX, mouseY, width, height, color(255), false, 1, img);
+        ImageShape imageShape = new ImageShape(mouseX, mouseY, width, height, color(255), false, 1, img, selection.getAbsolutePath());
         addShape(imageShape);
     }
 }

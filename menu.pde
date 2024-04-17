@@ -117,7 +117,7 @@ class Menu {
 }
 
 class MenuExtra {
-  String[] options = {"Area select","Move", "Resize"};
+  String[] options = {"Area select","Move", "Resize", "Delete", "Save"};
   String currentOption = null;
 
   void draw() {

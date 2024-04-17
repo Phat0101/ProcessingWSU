@@ -26,6 +26,9 @@ class Shape {
         // This is a default implementation that always returns false.
         return false;
     }
+    String toString() {
+        return x + "," + y + "," + width + "," + height + "," + red(c) + "," + green(c) + "," + blue(c) + "," + outline + "," + outlineThickness;
+    }
 }
 
 class Rectangle extends Shape {
@@ -50,6 +53,10 @@ class Rectangle extends Shape {
     @Override
     boolean intersects(float rx, float ry, float rw, float rh) {
         return !(x > rx + rw || x + width < rx || y > ry + rh || y + height < ry);
+    }
+    @Override
+    String toString() {
+        return "Rectangle," + super.toString();
     }
 }
 
@@ -82,6 +89,10 @@ class Circle extends Shape {
         float dy = y - closestY;
         return dx * dx + dy * dy <= (width / 2) * (width / 2);
     }
+    @Override
+    String toString() {
+        return "Circle," + super.toString();
+    }
 }
 
 class Ellipse extends Shape {
@@ -108,7 +119,11 @@ class Ellipse extends Shape {
     @Override
     boolean intersects(float rx, float ry, float rw, float rh) {
         return !(x - width / 2 > rx + rw || x + width / 2 < rx || y - height / 2 > ry + rh || y + height / 2 < ry);
-  }
+    } 
+    @Override
+    String toString() {
+        return "Ellipse," + super.toString();
+    }
 }
 
 class Line extends Shape {
@@ -130,8 +145,13 @@ class Line extends Shape {
         float d = dist(px, py, x, y) + dist(px, py, x2, y2) - dist(x, y, x2, y2);
         return abs(d) < 0.2; // allow for some margin of error
     }
+    @Override
     boolean intersects(float rx, float ry, float rw, float rh) {
        return (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) || (x2 >= rx && x2 <= rx + rw && y2 >= ry && y2 <= ry + rh);
+    }
+    @Override
+    String toString() {
+        return "Line," + super.toString() + "," + x2 + "," + y2;
     }
 }
 
@@ -164,18 +184,23 @@ class Text extends Shape {
         float textWidth = textWidth(this.text);
         return !(x > rx + rw || x + textWidth < rx || y - 20 > ry + rh || y < ry);
     } 
+    @Override
+    String toString() {
+        return "Text," + super.toString() + "," + text;
+    }
 }
 
 class ImageShape extends Shape {
     PImage img;
+    String imagePath;
 
-    ImageShape(float x, float y, float width, float height, color c, boolean outline, float outlineThickness, PImage img) {
+    ImageShape(float x, float y, float width, float height, color c, boolean outline, float outlineThickness, PImage img, String imagePath) {
         super(x, y, width, height, c, outline, outlineThickness);
         this.img = img;
+        this.imagePath = imagePath;
     }
 
     void draw() {
-        this.img.resize((int)width, (int)height);
         image(img, x, y, width, height);
     }
     @Override
@@ -185,5 +210,9 @@ class ImageShape extends Shape {
     @Override
     boolean intersects(float rx, float ry, float rw, float rh) {
         return !(x > rx + rw || x + width < rx || y > ry + rh || y + height < ry);
+    }
+    @Override
+    String toString() {
+        return "Image," + super.toString() + "," + imagePath;
     }
 }

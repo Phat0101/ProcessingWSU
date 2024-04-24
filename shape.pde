@@ -193,16 +193,34 @@ class Text extends Shape {
 class ImageShape extends Shape {
     PImage img;
     String imagePath;
+    boolean isTint;
+    boolean isBlur;
 
-    ImageShape(float x, float y, float width, float height, color c, boolean outline, float outlineThickness, PImage img, String imagePath) {
+    ImageShape(float x, float y, float width, float height, color c, boolean outline, float outlineThickness, PImage img, String imagePath, boolean isTint, boolean isBlur) {
         super(x, y, width, height, c, outline, outlineThickness);
         this.img = img;
         this.imagePath = imagePath;
+        this.isTint = isTint;
+        this.isBlur = isBlur;
     }
 
     void draw() {
+    if (isTint) {
+        tint(0, 153, 204, 126);
+    } 
+    if (isBlur) {
+        PGraphics pg;
+        pg = createGraphics((int)width, (int)height);
+        pg.beginDraw();
+        pg.image(img, 0, 0, width, height); 
+        pg.endDraw();
+        pg.filter(BLUR, 5);
+        image(pg, x, y); 
+    } else {
         image(img, x, y, width, height);
     }
+    noTint();
+}
     @Override
     boolean contains(float px, float py) {
         return px >= x && px <= x + width && py >= y && py <= y + height;
@@ -213,6 +231,87 @@ class ImageShape extends Shape {
     }
     @Override
     String toString() {
-        return "Image," + super.toString() + "," + imagePath;
+        return "Image," + super.toString() + "," + imagePath + "," + isTint + "," + isBlur;
+    }
+
+}
+
+class Polygon extends Shape {
+    int sides;
+    float radius;
+
+    Polygon(float x, float y, float width, float height, color colour, boolean outline, float outlineThickness, int sides) {
+        super(x, y, width, height, colour, outline, outlineThickness);
+        this.sides = sides;
+        this.radius = width/2;
+    }
+
+    void draw() {
+        fill(c);
+        if (outline) {
+        stroke(0);
+        strokeWeight(outlineThickness);
+        } else {
+        noStroke();
+        }
+        beginShape();
+        for (int i = 0; i < sides; i++) {
+        float angle = map(i, 0, sides, 0, TWO_PI);
+        float px = x + width/2 * cos(angle);
+        float py = y + height/2 * sin(angle);
+        vertex(px, py);
+        }
+        endShape(CLOSE);
+    }
+    @Override
+    boolean contains(float px, float py){
+        float angle = TWO_PI / sides;
+        boolean odd = false;
+        for (int i = 0; i < sides; i++) {
+        float x1 = x + width/2 * cos(angle * i);
+        float y1 = y + height/2 * sin(angle * i);
+        float x2 = x + width/2 * cos(angle * (i + 1));
+        float y2 = y + height/2 * sin(angle * (i + 1));
+        if ((y1 > py) != (y2 > py) && (px < (x2 - x1) * (py - y1) / (y2 - y1) + x1)) {
+            odd = !odd;
+        }
+        }
+        return odd;
+    }
+    @Override
+    boolean intersects(float rx, float ry, float rw, float rh) {
+        return !(x - radius > rx + rw || x + radius < rx || y - radius > ry + rh || y + radius < ry);
+    }
+    @Override
+    String toString() {
+        return "Polygon," + super.toString() + "," + sides;
+    }
+}
+
+Shape deepCopyShape(Shape original) {
+    if (original instanceof Rectangle) {
+        Rectangle rect = (Rectangle) original;
+        return new Rectangle(rect.x, rect.y, rect.width, rect.height, rect.c, rect.outline, rect.outlineThickness);
+    } else if (original instanceof Circle) {
+        Circle circ = (Circle) original;
+        return new Circle(circ.x, circ.y, circ.width, circ.c, circ.outline, circ.outlineThickness);
+    } else if (original instanceof Ellipse) {
+        Ellipse ellip = (Ellipse) original;
+        return new Ellipse(ellip.x, ellip.y, ellip.width, ellip.height, ellip.c, ellip.outline, ellip.outlineThickness);
+    } else if (original instanceof Line) {
+        Line line = (Line) original;
+        return new Line(line.x, line.y, line.x2, line.y2, line.c, line.outline, line.outlineThickness);
+    } else if (original instanceof Text) {
+        Text text = (Text) original;
+        return new Text(text.x, text.y, text.c, text.text, text.outline, text.outlineThickness);
+    } else if (original instanceof ImageShape) {
+        ImageShape imgShape = (ImageShape) original;
+        return new ImageShape(imgShape.x, imgShape.y, imgShape.width, imgShape.height, imgShape.c, imgShape.outline, imgShape.outlineThickness, imgShape.img, imgShape.imagePath, imgShape.isTint, imgShape.isBlur);
+    } else if (original instanceof Polygon) {
+        Polygon poly = (Polygon) original;
+        return new Polygon(poly.x, poly.y, poly.width, poly.height, poly.c, poly.outline, poly.outlineThickness, poly.sides);
+    } else 
+    {
+        return null;
     }
 }

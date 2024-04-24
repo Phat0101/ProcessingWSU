@@ -3,7 +3,7 @@ class Menu {
     color currentColor = color(0, 0, 0);
     boolean currentOutline = false;
     float currentOutlineThickness = 1.0;
-    String[] shapes = {"Rectangle", "Circle", "Ellipse", "Line", "Text"}; 
+    String[] shapes = {"Rectangle", "Circle", "Ellipse", "Polygon", "Line", "Text"}; 
     color[] colors = {color(255, 0, 0), color(0, 255, 0), color(0, 0, 255), color(255, 255, 255)}; // add more colors as needed
     boolean[] outlines = {true, false};
     float[] outlineThicknesses = {1.0, 2.0, 3.0};
@@ -33,6 +33,15 @@ class Menu {
               font = createFont("Arial", 20);
               textFont(font);
               text("T", 45, i * 50 + 30);
+          } if (shapes[i] == "Polygon") {
+              beginShape();
+              for (int j = 0; j < 6; j++) {
+                float angle = map(j, 0, 6, 0, TWO_PI);
+                float px = 50 + 20 * cos(angle);
+                float py = i * 50 + 25 + 20 * sin(angle);
+                vertex(px, py);
+              }
+              endShape(CLOSE);
           }
       }
       // draw options for colors
@@ -40,7 +49,7 @@ class Menu {
         fill(colors[i]);
         rect(0, (shapes.length + i) * 50, 100, 50); // draw a button for each color
         if (currentColor == colors[i]) {
-            fill(0); // set the color of the checkmark to black
+            fill(0); 
             line(25, (shapes.length + i) * 50 + 25, 40, (shapes.length + i) * 50 + 35);
             line(40, (shapes.length + i) * 50 + 35, 60, (shapes.length + i) * 50 + 15);
         }
@@ -117,7 +126,7 @@ class Menu {
 }
 
 class MenuExtra {
-  String[] options = {"Area select","Move", "Resize", "Delete", "Save"};
+  String[] options = {"Area select","Move", "Resize", "Delete", "Save", "Read", "Tint", "Blur"};
   String currentOption = null;
 
   void draw() {
@@ -126,7 +135,7 @@ class MenuExtra {
     // draw options
     for (int i = 0; i < options.length; i++) {
       if (currentOption == options[i]) {
-        fill(200); // highlight the selected option
+        fill(200); 
       } else {
         fill(255);
       }
